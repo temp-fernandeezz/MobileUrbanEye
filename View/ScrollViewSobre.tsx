@@ -17,7 +17,7 @@ const carouselItemsInformacao = [
 const CarouselItem = ({ item }) => (
   <View style={{ width: viewportWidth * 0.8, padding: 10, marginHorizontal: viewportWidth * 0.1 }}>
     <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'white' }}>{item.title}</Text>
-    <Text style={{ fontSize: 12, marginTop: 10, color: 'white' }}>{item.text}</Text>
+    <Text style={{ fontSize: 12, marginTop: 10, color: 'white' , textAlign: 'justify'}}>{item.text}</Text>
   </View>
 );
 

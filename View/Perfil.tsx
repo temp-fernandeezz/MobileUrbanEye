@@ -2,17 +2,29 @@ import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet, TextInput, Image, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-import axios from 'axios'; // Certifique-se de que você está usando axios
+import axios from 'axios';
+import { CommonActions } from '@react-navigation/native'; // Import CommonActions for resetting the stack
 import api from '../Model/api';
 
-const Perfil = ({ navigation }: any) => {
-  const [email, setEmail] = useState<string>('');
-  const [newPassword, setNewPassword] = useState<string>('');
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+const Perfil = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('authToken');
-    navigation.navigate('Login');
+    try {
+      await AsyncStorage.removeItem('authToken');
+      
+      // Reset the navigation stack and navigate to the Login screen
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        })
+      );
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   const handlePasswordChange = async () => {
@@ -47,15 +59,15 @@ const Perfil = ({ navigation }: any) => {
             const formData = new FormData();
             formData.append('profile_image', {
               uri: result.uri,
-              type: 'image/jpeg', // ou 'image/png' dependendo do tipo da imagem
-              name: 'profile.jpg'
+              type: 'image/jpeg',
+              name: 'profile.jpg',
             });
 
             const response = await axios.post('http://localhost:8000/user/upload-image', formData, {
               headers: {
                 'Content-Type': 'multipart/form-data',
-                Authorization: `Bearer ${token}`
-              }
+                Authorization: `Bearer ${token}`,
+              },
             });
 
             console.log('Imagem enviada com sucesso', response.data);

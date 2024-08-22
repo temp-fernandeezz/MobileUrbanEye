@@ -35,7 +35,6 @@ const general = {
     flex: 1, //ocupa o espaço da tela toda
     alignItems: 'center', //centralizado horizontal
     justifyContent: 'center', //centralizado vertical
-     marginHorizontal: 10
   },
   containerBetweenCenter: {
     flex: 1, 
@@ -49,8 +48,8 @@ const general = {
   backgroundverdeEscuro: {
     backgroundColor: colors.verdeEscuro,
   },
-  backgroundGold:{
-    backgroundColor: colors.bold,
+  backgroundClaro:{
+    backgroundColor: colors.claro,
   },
   rowContainer: {
     flexDirection: 'row', //Colocca olbjetos alinhados em mesma linha
@@ -104,8 +103,7 @@ const general = {
   textBlack: {
     ...baseStyles.text,
     fontSize: fonts.regular,
-    color: colors.black,
-    textAlign: 'center'
+    color: colors.black
   },
   textBlackSmall: {
     ...baseStyles.text,
@@ -118,7 +116,7 @@ const general = {
     borderWidth: 1, //Largura da Borda
     borderColor: colors.verdeMedio, //Cor Borda
   },
-  buttonGold: {
+  buttonVerde: {
     ...baseStyles.buttonRounds,
     backgroundColor: colors.verdeMedio,
   },
@@ -128,7 +126,48 @@ const general = {
     color: colors.verdeClaro,
     textAlign: 'center',
     fontWeight: 'bold'
-  }
+  },
+   textInputCEP: {
+    backgroundColor: colors.white,
+    color: colors.black,
+    fontSize: fonts.regular,
+    height: 40,
+    width: metrics.screenWidth*0.9,
+    marginTop: 5,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+  },
+  windowsLogin:{
+     width: metrics.screenWidth * 0.9,
+     height: metrics.screenHeight * 0.4,
+     borderRadius: 50,
+     backgroundColor: colors.white,
+     alignItems: 'left', 
+     justifyContent: 'center',
+     paddingHorizontal: 10,
+  }, 
+   windowRegister:{
+     width: metrics.screenWidth * 0.9,
+     height: metrics.screenHeight * 0.8,
+     borderRadius: 50,
+     backgroundColor: colors.white,
+     alignItems: 'left', 
+     justifyContent: 'center',
+     paddingHorizontal: 10,
+  },
+  textInputBorder: {
+    backgroundColor: colors.white,
+    color: colors.black,
+    fontSize: fonts.regular,
+    height: 40,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: colors.verdeEscuro,
+    borderRadius: 10,
+    marginVertical: 8
+
+  },
 };
 
 

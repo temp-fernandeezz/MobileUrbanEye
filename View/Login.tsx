@@ -1,126 +1,86 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-import api from '../Model/api';
-import Perfil from '../View/Perfil';
-import axios from 'axios';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../Model/api'; // Certifique-se de que este arquivo contém a configuração da API.
+import styles from '../Styles/styles';
 
-interface LoginResponse {
-  token: string;
-  user: {
-    id: number;
-    username: string;
-  };
-  message?: string;
-}
-
-const Login = ({ navigation }: any) => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [error, setError] = useState<string>('');
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigation = useNavigation();
 
   const handleLogin = async () => {
-    console.log('Iniciando login...');
     try {
-      const response = await api.post<LoginResponse>('/login', {
-        email,
-        password,
-      });
+      const response = await api.post('/login', { email, password });
+      const { token } = response.data;
 
-      if (response.status === 200) {
-        console.log('Login bem-sucedido', response.data);
-        
-        // Armazenar o token no AsyncStorage
-        await AsyncStorage.setItem('authToken', response.data.token);
-        
-        // Navegar para a tela de perfil
-        navigation.navigate('Perfil');
-      } else {
-        setError(response.data.message || 'Erro ao fazer login');
-      }
+      // Armazenar o token no AsyncStorage
+      await AsyncStorage.setItem('authToken', token);
+
+      // Navegar para a próxima tela (ajuste conforme necessário)
+      navigation.navigate('Perfil');
     } catch (error) {
-      console.error('Erro na requisição:', error);
-      if (axios.isAxiosError(error) && error.response) {
-        setError(error.response.data.message || 'Erro ao se conectar à API');
-      } else {
-        setError('Erro desconhecido');
-      }
+      Alert.alert('Erro', 'Email ou senha incorretos. Tente novamente.');
+      console.error('Erro ao fazer login:', error);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        placeholderTextColor="#888"
+    <SafeAreaView
+      style={[styles.containerCenter, styles.backgroundverdeEscuro]}>
+      <Image
+        source={require('../Images/logo.png')}
+        style={{ width: '60%', maxHeight: 200, resizeMode: 'contain' }}
       />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        placeholderTextColor="#888"
-      />
-      
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.windowsLogin}>
+        <Text style={styles.textBlackRegular}>Login</Text>
+        <TextInput
+          style={styles.textInputBorder}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <Text style={styles.textBlackRegular}>Senha</Text>
+        <TextInput
+          style={styles.textInputBorder}
+          placeholder="*******"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+
+        <TouchableOpacity>
+          <Text style={{ fontSize: 12, fontWeight: 'bold' }}>
+            Esqueci minha senha
+          </Text>
+        </TouchableOpacity>
+
+        <View style={styles.rowContainer}>
+          <TouchableOpacity
+            style={[styles.buttonVerde, { marginBottom: 20 }]}
+            onPress={handleLogin}
+          >
+            <Text style={styles.textWhite}>Entrar</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity>
+          <Text style={[styles.textVerdeClaro, { fontWeight: 'bold' }]}>
+            Ainda não possui cadastro?
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#f5f5f5',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  input: {
-    height: 50,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    fontSize: 16,
-    marginBottom: 20,
-    backgroundColor: '#fff',
-  },
-  button: {
-    height: 50,
-    backgroundColor: '#007bff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-});
 
 export default Login;

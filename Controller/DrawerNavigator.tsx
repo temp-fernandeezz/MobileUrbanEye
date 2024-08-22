@@ -7,7 +7,8 @@ import NovaReclamacao from '../View/NovaReclamacao';
 import Blog from '../View/Blog';
 import Login from '../View/Login';
 import Cadastro from '../View/Cadastro';
-import Perfil from '../View/Perfil'; // Importe a tela de perfil
+import Perfil from '../View/Perfil';
+import BuscarLocais from '../View/BuscarLocais';
 
 const Drawer = createDrawerNavigator();
 
@@ -28,6 +29,7 @@ const DrawerNavigator = () => {
       <Drawer.Screen name="Home" component={TelaInicial} />
       <Drawer.Screen name="Sobre Nós" component={SobreNos} />
       <Drawer.Screen name="Nova Reclamação" component={NovaReclamacao} />
+      <Drawer.Screen name="Buscar Locais" component={BuscarLocais} />
       <Drawer.Screen name="Blog" component={Blog} />
       {isAuthenticated ? (
         <Drawer.Screen name="Perfil" component={Perfil} />
