@@ -38,7 +38,7 @@ const Login = () => {
     <SafeAreaView
       style={[styles.containerCenter, styles.backgroundverdeEscuro]}>
       <Image
-        source={require('../Images/logo.png')}
+        source={require('../Images/logo.jpg')}
         style={{ width: '60%', maxHeight: 200, resizeMode: 'contain' }}
       />
       <View style={styles.windowsLogin}>

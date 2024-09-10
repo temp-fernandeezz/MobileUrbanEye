@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -11,8 +11,19 @@ const Header = ({ title }) => {
       <Ionicons
         name="menu"
         size={24}
-        color="black"
+        color="white"
         onPress={() => navigation.openDrawer()}
+        style={styles.icon}
+      />
+      <Text style={styles.title}>{title}</Text>
+      <Ionicons
+        name="notifications-outline"  // ou "notifications" para um ícone preenchido
+        size={24}
+        color="black"
+        onPress={() => {
+          // Adicione a ação para o ícone de notificações
+        }}
+        style={styles.icon}
       />
     </View>
   );
@@ -21,7 +32,8 @@ const Header = ({ title }) => {
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
-    alignItems: 'left',
+    alignItems: 'center',  // Alinha itens verticalmente no centro
+    justifyContent: 'space-between',  // Distribui o espaço entre os itens
     padding: 10,
     backgroundColor: 'black',
     elevation: 3, 
@@ -30,11 +42,13 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   icon: {
-    marginRight: 20,
-  }
+    color: 'white',
+  },
+  title: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
 
 export default Header;
-
-
-//Cabeçalho que aloca o hamburguer e a logo em todas as paginas

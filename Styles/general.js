@@ -59,6 +59,7 @@ const general = {
   },
   textWhiteTitle: {
     ...baseStyles.text,
+    fontFamily: fonts.PlayWritel,
     fontSize: fonts.big,
     color: colors.white,
   },

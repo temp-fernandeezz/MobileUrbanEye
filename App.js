@@ -2,7 +2,6 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import Rotas from './Controller/Rotas';
 
-
 const App = () => {
   return (
     <NavigationContainer>
@@ -12,10 +11,3 @@ const App = () => {
 }
 
 export default App;
-
-
-//Direciona para a Rota criada em Rotas.js
-
-
-
-
