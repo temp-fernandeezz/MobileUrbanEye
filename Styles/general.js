@@ -89,7 +89,7 @@ const general = {
     alignItems: 'center',
   },
   mapContainer: {
-    height: 600, 
+    height: 600,
   },
   map: {
     width: '100%',
@@ -139,15 +139,15 @@ const general = {
     textAlign: 'center',
     fontWeight: 'bold',
   },
-  windowsLogin:{
-     width: metrics.screenWidth * 0.9,
-     height: metrics.screenHeight * 0.4,
-     borderRadius: 50,
-     backgroundColor: colors.white,
-     alignItems: 'left', 
-     justifyContent: 'center',
-     paddingHorizontal: 10,
-  }, 
+  windowsLogin: {
+    width: metrics.screenWidth * 0.9,
+    height: metrics.screenHeight * 0.4,
+    borderRadius: 50,
+    backgroundColor: colors.white,
+    alignItems: 'left',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
   titleLogado: {
     fontWeight: 'bold',
     fontSize: 18,
@@ -178,29 +178,71 @@ const general = {
     marginVertical: 8
   },
   cepContainer: {
-  padding: 16,
-  backgroundColor: '#fff',
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-cepInput: {
-  height: 40,
-  width: '70%',
-  borderColor: '#ccc',
-  borderWidth: 1,
-  borderRadius: 5,
-  paddingHorizontal: 10,
-  
-},
-cepButtonBuscar: {
-  backgroundColor: '#007a53',
-  padding: 10,
-  borderRadius: 5,
-},
-backgroundClaro:{
+    padding: 16,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cepInput: {
+    height: 40,
+    width: '70%',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+
+  },
+  cepButtonBuscar: {
+    backgroundColor: '#007a53',
+    padding: 10,
+    borderRadius: 5,
+  },
+  backgroundClaro: {
     backgroundColor: colors.claro,
   },
-  
+  // Estilo adicional para os filtros
+  filterContainer: {
+    padding: 15,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    marginHorizontal: 20,
+    padding: 10,
+    borderRadius: 5,
+  },
+  filterTitle: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  filterButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  filterButton: {
+    flex: 1,
+    marginHorizontal: 5,
+    backgroundColor: '#6c757d',
+    padding: 10,
+    borderRadius: 5,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedFilter: {
+    backgroundColor: '#007bff',
+  },
+  clearFilterButton: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 5,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+
 };
 
 export default general;

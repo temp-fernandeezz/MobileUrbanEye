@@ -10,7 +10,7 @@ import {
   TextInput,
   Alert,
 } from "react-native";
-import { api } from "../lib/api"; // Importa a instância do Axios configurada
+import { api } from "../lib/api";
 import styles from "../Styles/styles";
 import CarrosselInfoSobre from "./ScrollViewSobre";
 import MapView, { Marker } from "react-native-maps";
@@ -27,15 +27,17 @@ const TelaInicial = () => {
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
-  const [cep, setCep] = useState("");
+  const [postal_code, setCep] = useState("");
   const [markers, setMarkers] = useState([]);
+  const [filteredMarkers, setFilteredMarkers] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState(null);
 
   useEffect(() => {
     const fetchApprovedLocations = async () => {
       try {
         const response = await api.get("/reports/approved-locations");
-        // console.log("Locais aprovados:", response.data); 
-        setMarkers(response.data); 
+        setMarkers(response.data);
+        setFilteredMarkers(response.data);
       } catch (error) {
         Alert.alert("Erro", "Não foi possível buscar os locais.");
         console.error("Erro ao buscar locais aprovados:", error);
@@ -45,19 +47,26 @@ const TelaInicial = () => {
     fetchApprovedLocations();
   }, []);
 
-  const handleBuscarLocaisPress = () => {
-    scrollViewRef.current.scrollTo({
-      y: height + 400,
-      animated: true,
-    });
+  const applyFilter = (filterType) => {
+    setSelectedFilter(filterType);
+    if (filterType) {
+      const filtered = markers.filter((marker) => marker.type === filterType);
+      setFilteredMarkers(filtered);
+    } else {
+      setFilteredMarkers(markers);
+    }
   };
 
   const buscarEnderecoPorCep = async () => {
     try {
-      const response = await api.get(`/location/search`); 
+      const response = await api.get("/location/search", {
+        params: { postal_code: postal_code },
+      });
       const data = response.data;
 
-      if (data.erro) {
+      console.log("Dados do CEP:", data);
+
+      if (data.error || !data.latitude || !data.longitude) {
         Alert.alert(
           "CEP inválido",
           "Não foi possível encontrar um endereço para o CEP fornecido."
@@ -65,39 +74,64 @@ const TelaInicial = () => {
         return;
       }
 
-      const { latitude, longitude } = await obterCoordenadas(
-        data.logradouro,
-        data.localidade,
-        data.uf
-      );
-      setMapRegion({ ...mapRegion, latitude, longitude });
+      setMapRegion({
+        latitude: parseFloat(data.latitude),
+        longitude: parseFloat(data.longitude),
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
     } catch (error) {
       Alert.alert("Erro", "Ocorreu um erro ao buscar o CEP.");
       console.error("Erro ao buscar CEP:", error);
     }
   };
 
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView>
       <ScrollView ref={scrollViewRef}>
-        <View style={styles.backgroundBlack}>
-          <ImageBackground
-            source={require("../Images/fundoCidade.jpg")}
-            style={styles.imageBackground}
-            resizeMode="cover"
+        <View style={styles.filterContainer}>
+          <Text style={styles.filterTitle}>
+            Realize a pesquisa pela filtragem:
+          </Text>
+          <View style={styles.filterButtonsRow}>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedFilter === "illegal_dump" && styles.selectedFilter,
+              ]}
+              onPress={() => applyFilter("illegal_dump")}
+            >
+              <Text style={styles.textWhite}>Descarte Irregular</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedFilter === "robberies" && styles.selectedFilter,
+              ]}
+              onPress={() => applyFilter("robberies")}
+            >
+              <Text style={styles.textWhite}>Assalto</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedFilter === "flood" && styles.selectedFilter,
+              ]}
+              onPress={() => applyFilter("flood")}
+            >
+              <Text style={styles.textWhite}>Área Alagada</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={styles.clearFilterButton}
+            onPress={() => applyFilter(null)} // Limpa o filtro
           >
-            <View style={styles.overlayContainer}>
-              <View style={styles.containerCenter}>
-                <Text style={styles.textWhiteTitle}>UrbanEye</Text>
-              </View>
-            </View>
-          </ImageBackground>
-        </View>
+            <Text style={styles.textWhite}>Limpar Filtros</Text>
+          </TouchableOpacity>
 
-        <View style={styles.cepContainer}>
           <Text style={{ fontSize: 16, color: "black", marginVertical: 10 }}>
-            Digite o CEP desejado para consultar os dados de risco da sua região
+            ou digite o CEP desejado para consultar os dados de risco da sua
+            região
           </Text>
 
           <View style={styles.rowContainer}>
@@ -105,7 +139,7 @@ const TelaInicial = () => {
               style={[styles.cepInput, { marginRight: 5 }]}
               placeholder="Digite o CEP"
               keyboardType="numeric"
-              value={cep}
+              value={postal_code}
               onChangeText={setCep}
             />
             <TouchableOpacity
@@ -123,23 +157,26 @@ const TelaInicial = () => {
             region={mapRegion}
             onRegionChangeComplete={setMapRegion}
           >
-            {markers.map((marker, index) => {
+            {filteredMarkers.map((marker, index) => {
               let pinColor;
               let title;
 
               switch (marker.type) {
                 case "illegal_dump":
-                  pinColor = "orange";
-                  title = "Descarte Irregular de Lixo";
+                  pinColor = "brown";
+                  title = "Descarte irregular";
                   break;
                 case "robberies":
                   pinColor = "red";
-                  title = "Assaltos";
+                  title = "Assalto";
                   break;
                 case "flood":
                   pinColor = "darkblue";
                   title = "Área Alagada";
                   break;
+                default:
+                  pinColor = "gray";
+                  title = "Local";
               }
 
               return (
