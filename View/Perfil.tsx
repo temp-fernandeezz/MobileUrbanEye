@@ -1,160 +1,165 @@
-import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet, TextInput, Image, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as ImagePicker from 'expo-image-picker';
-import axios from 'axios';
-import { CommonActions } from '@react-navigation/native'; // Import CommonActions for resetting the stack
-import api from '../Model/api';
+import React, { useState, useEffect } from 'react';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import api from '../Model/api'; 
+import styles from '../Styles/styles';
 
-const Perfil = ({ navigation }) => {
+const Perfil = () => {
+  const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [profileImage, setProfileImage] = useState(null);
+  const [confirmEmail, setConfirmEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [confirmSenha, setConfirmSenha] = useState('');
+  const [cep, setCep] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [rua, setRua] = useState('');
+  const [estado, setEstado] = useState('');
+  const navigation = useNavigation();
+  const route = useRoute();
+  
+  // Verifica se o parâmetro userId está presente em route.params
+  const { userId } = route.params || {}; 
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem('authToken');
-      
-      // Reset the navigation stack and navigate to the Login screen
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        })
-      );
-    } catch (error) {
-      console.error('Error during logout:', error);
+  useEffect(() => {
+    if (!userId) {
+      Alert.alert('Erro', 'Usuário não encontrado.');
+      return;
     }
-  };
 
-  const handlePasswordChange = async () => {
-    const token = await AsyncStorage.getItem('authToken');
-    if (token) {
+    const fetchUserDetails = async () => {
       try {
-        await api.put('/user/change-password', { newPassword }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        alert('Senha alterada com sucesso');
+        const response = await api.get(`/user/${userId}`);
+        const userData = response.data;
+        setNome(userData.nome);
+        setEmail(userData.email);
+        setConfirmEmail(userData.email);
+        setCep(userData.cep);
+        setCidade(userData.cidade);
+        setRua(userData.rua);
+        setEstado(userData.estado);
       } catch (error) {
-        console.error('Erro ao alterar a senha', error);
+        console.error('Erro ao buscar dados do usuário:', error);
+        Alert.alert('Erro', 'Não foi possível carregar os dados do usuário.');
+      }
+    };
+
+    fetchUserDetails();
+  }, [userId]);
+
+  const handleCepChange = async (cep) => {
+    setCep(cep);
+    if (cep.length === 8) { // O CEP deve ter 8 dígitos
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+        if (!data.erro) {
+          setRua(data.logradouro);
+          setCidade(data.localidade);
+          setEstado(data.uf);
+        } else {
+          Alert.alert('Erro', 'CEP inválido.');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        Alert.alert('Erro', 'Não foi possível buscar o endereço. Tente novamente.');
       }
     }
   };
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status === 'granted') {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
+  const handleSave = async () => {
+    if (email !== confirmEmail) {
+      Alert.alert('Erro', 'Os emails não coincidem.');
+      return;
+    }
+
+    if (senha !== confirmSenha) {
+      Alert.alert('Erro', 'As senhas não coincidem.');
+      return;
+    }
+
+    // Verificar se todos os campos obrigatórios estão preenchidos
+    if (!nome || !email || !cep || !cidade || !rua || !estado) {
+      Alert.alert('Erro', 'Todos os campos devem ser preenchidos.');
+      return;
+    }
+
+    try {
+      const response = await api.put(`/user/${userId}`, {
+        nome,
+        email,
+        senha,
+        cep,
+        cidade,
+        rua,
+        estado,
       });
 
-      if (!result.cancelled) {
-        setProfileImage(result.uri);
-        const token = await AsyncStorage.getItem('authToken');
-        if (token) {
-          try {
-            const formData = new FormData();
-            formData.append('profile_image', {
-              uri: result.uri,
-              type: 'image/jpeg',
-              name: 'profile.jpg',
-            });
-
-            const response = await axios.post('http://localhost:8000/user/upload-image', formData, {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-                Authorization: `Bearer ${token}`,
-              },
-            });
-
-            console.log('Imagem enviada com sucesso', response.data);
-          } catch (error) {
-            console.error('Erro ao enviar a imagem', error);
-          }
-        }
+      if (response.status === 200) {
+        Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
+        navigation.goBack();
+      } else {
+        Alert.alert('Erro', 'Não foi possível atualizar o perfil. Tente novamente.');
       }
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      Alert.alert('Erro', 'Ocorreu um erro ao tentar atualizar o perfil. Tente novamente.');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Perfil do Usuário</Text>
-      {profileImage ? (
-        <Image source={{ uri: profileImage }} style={styles.profileImage} />
-      ) : (
-        <Text style={styles.noImageText}>Sem foto de perfil</Text>
-      )}
-      <TouchableOpacity onPress={pickImage} style={styles.button}>
-        <Text style={styles.buttonText}>Adicionar Foto de Perfil</Text>
-      </TouchableOpacity>
-      <Text>Email: {email}</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Nova Senha"
-        value={newPassword}
-        onChangeText={setNewPassword}
-        secureTextEntry
-      />
-      <TouchableOpacity onPress={handlePasswordChange} style={styles.button}>
-        <Text style={styles.buttonText}>Alterar Senha</Text>
-      </TouchableOpacity>
-      <Button title="Sair" onPress={handleLogout} />
-    </View>
+    <SafeAreaView style={[styles.containerCenter, styles.backgroundverdeEscuro]}>
+      <View style={styles.windowRegister}>
+        <ScrollView style={{ margin: 10 }}>
+          <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 18, marginVertical: 30 }}>
+            Edite suas informações abaixo
+          </Text>
+          <Text style={styles.textBlackRegular}> Nome Completo </Text>
+          <TextInput style={styles.textInputBorder} value={nome} onChangeText={setNome} />
+          <Text style={styles.textBlackRegular}> Email </Text>
+          <TextInput style={styles.textInputBorder} value={email} onChangeText={setEmail} />
+          <Text style={styles.textBlackRegular}> Confirme o Email </Text>
+          <TextInput style={styles.textInputBorder} value={confirmEmail} onChangeText={setConfirmEmail} />
+          <Text style={styles.textBlackRegular}> Senha (deixe em branco para não alterar) </Text>
+          <TextInput style={styles.textInputBorder} secureTextEntry={true} value={senha} onChangeText={setSenha} />
+          <Text style={styles.textBlackRegular}> Confirme a Senha </Text>
+          <TextInput style={styles.textInputBorder} secureTextEntry={true} value={confirmSenha} onChangeText={setConfirmSenha} />
+          <Text style={styles.textBlackRegular}> CEP </Text>
+          <TextInput
+            style={styles.textInputBorder}
+            value={cep}
+            onChangeText={handleCepChange}
+            keyboardType="numeric"
+          />
+          <Text style={styles.textBlackRegular}> Rua </Text>
+          <TextInput style={styles.textInputBorder} value={rua} onChangeText={setRua} editable={false} />
+          <Text style={styles.textBlackRegular}> Cidade </Text>
+          <TextInput style={styles.textInputBorder} value={cidade} onChangeText={setCidade} editable={false} />
+          <Text style={styles.textBlackRegular}> Estado </Text>
+          <TextInput style={styles.textInputBorder} value={estado} onChangeText={setEstado} editable={false} />
+
+          <View style={styles.rowContainer}>
+            <TouchableOpacity style={[styles.buttonVerde, { marginBottom: 20 }]} onPress={handleSave}>
+              <Text style={styles.textWhite}>Salvar</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={[styles.textVerdeClaro, { fontWeight: 'bold' }]}>
+              Voltar
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    padding: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 20,
-  },
-  noImageText: {
-    color: '#888',
-    marginBottom: 20,
-  },
-  input: {
-    height: 50,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    fontSize: 16,
-    marginBottom: 20,
-    backgroundColor: '#fff',
-    width: '100%',
-  },
-  button: {
-    height: 50,
-    backgroundColor: '#007bff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginVertical: 10,
-    width: '100%',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 
 export default Perfil;

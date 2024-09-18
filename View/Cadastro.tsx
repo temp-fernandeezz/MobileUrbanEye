@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import api from "../Model/api";
+import api from "../lib/api";
 import styles from "../Styles/styles";
 
 const Cadastro = () => {

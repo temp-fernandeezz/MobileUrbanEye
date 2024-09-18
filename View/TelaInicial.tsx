@@ -1,178 +1,164 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   SafeAreaView,
   ImageBackground,
   View,
   Text,
   TouchableOpacity,
-  Image,
   ScrollView,
+  Dimensions,
+  TextInput,
+  Alert,
 } from "react-native";
+import { api } from "../lib/api"; // Importa a instância do Axios configurada
 import styles from "../Styles/styles";
 import CarrosselInfoSobre from "./ScrollViewSobre";
+import MapView, { Marker } from "react-native-maps";
+import { useNavigation } from "@react-navigation/native";
+
+const { height } = Dimensions.get("window");
 
 const TelaInicial = () => {
+  const navigation = useNavigation();
+  const scrollViewRef = useRef(null);
+  const [mapRegion, setMapRegion] = useState({
+    latitude: -23.55052,
+    longitude: -46.633308,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+  const [cep, setCep] = useState("");
+  const [markers, setMarkers] = useState([]);
+
+  useEffect(() => {
+    const fetchApprovedLocations = async () => {
+      try {
+        const response = await api.get("/reports/approved-locations");
+        // console.log("Locais aprovados:", response.data); 
+        setMarkers(response.data); 
+      } catch (error) {
+        Alert.alert("Erro", "Não foi possível buscar os locais.");
+        console.error("Erro ao buscar locais aprovados:", error);
+      }
+    };
+
+    fetchApprovedLocations();
+  }, []);
+
+  const handleBuscarLocaisPress = () => {
+    scrollViewRef.current.scrollTo({
+      y: height + 400,
+      animated: true,
+    });
+  };
+
+  const buscarEnderecoPorCep = async () => {
+    try {
+      const response = await api.get(`/location/search`); 
+      const data = response.data;
+
+      if (data.erro) {
+        Alert.alert(
+          "CEP inválido",
+          "Não foi possível encontrar um endereço para o CEP fornecido."
+        );
+        return;
+      }
+
+      const { latitude, longitude } = await obterCoordenadas(
+        data.logradouro,
+        data.localidade,
+        data.uf
+      );
+      setMapRegion({ ...mapRegion, latitude, longitude });
+    } catch (error) {
+      Alert.alert("Erro", "Ocorreu um erro ao buscar o CEP.");
+      console.error("Erro ao buscar CEP:", error);
+    }
+  };
+
+
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView>
+    <SafeAreaView style={styles.container}>
+      <ScrollView ref={scrollViewRef}>
         <View style={styles.backgroundBlack}>
           <ImageBackground
             source={require("../Images/fundoCidade.jpg")}
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              height: 400,
-              opacity: 0.8,
-            }}
+            style={styles.imageBackground}
             resizeMode="cover"
           >
-            <View
-              style={{
-                width: 350,
-                height: 350,
-                borderWidth: 3,
-                borderColor: "#006f4c",
-                backgroundColor: "transparent",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
+            <View style={styles.overlayContainer}>
               <View style={styles.containerCenter}>
                 <Text style={styles.textWhiteTitle}>UrbanEye</Text>
-                <View style={styles.rowContainer}>
-                  <TouchableOpacity style={styles.buttonVerde}>
-                    <Text style={styles.textWhite}>Buscar Locais</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.buttonTransparent}>
-                    <Text style={styles.textWhite}>Realizar Reclamação</Text>
-                  </TouchableOpacity>
-                </View>
               </View>
             </View>
           </ImageBackground>
+        </View>
+
+        <View style={styles.cepContainer}>
+          <Text style={{ fontSize: 16, color: "black", marginVertical: 10 }}>
+            Digite o CEP desejado para consultar os dados de risco da sua região
+          </Text>
+
+          <View style={styles.rowContainer}>
+            <TextInput
+              style={[styles.cepInput, { marginRight: 5 }]}
+              placeholder="Digite o CEP"
+              keyboardType="numeric"
+              value={cep}
+              onChangeText={setCep}
+            />
+            <TouchableOpacity
+              style={styles.cepButtonBuscar}
+              onPress={buscarEnderecoPorCep}
+            >
+              <Text style={styles.textWhite}>Buscar CEP</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            region={mapRegion}
+            onRegionChangeComplete={setMapRegion}
+          >
+            {markers.map((marker, index) => {
+              let pinColor;
+              let title;
+
+              switch (marker.type) {
+                case "illegal_dump":
+                  pinColor = "orange";
+                  title = "Descarte Irregular de Lixo";
+                  break;
+                case "robberies":
+                  pinColor = "red";
+                  title = "Assaltos";
+                  break;
+                case "flood":
+                  pinColor = "darkblue";
+                  title = "Área Alagada";
+                  break;
+              }
+
+              return (
+                <Marker
+                  key={index}
+                  coordinate={{
+                    latitude: parseFloat(marker.latitude),
+                    longitude: parseFloat(marker.longitude),
+                  }}
+                  title={title}
+                  pinColor={pinColor}
+                />
+              );
+            })}
+          </MapView>
         </View>
 
         <View style={styles.backgroundverdeEscuro}>
           <CarrosselInfoSobre />
-        </View>
-        <View style={styles.backgroundClaro}>
-          <View
-            style={[
-              styles.containerCenter,
-              { alignItems: "center", justifyContent: "center", margin: 15 },
-            ]}
-          >
-            <Text style={{ fontSize: 18, fontWeight: "bold", color: "black" }}>
-              Serviços da UrbanEye
-            </Text>
-            <Text
-              style={[
-                styles.textBlackMedium,
-                { textAlign: "center", marginBottom: 30 },
-              ]}
-            >
-              Explore os serviços especializados oferecidos pela UrbanEye...
-            </Text>
-          </View>
-
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              marginHorizontal: 15,
-            }}
-          >
-            <Text style={[styles.textBlack, { fontWeight: "bold" }]}>
-              Pesquisas e Consultas
-            </Text>
-            <Image
-              source={require("../Images/exemploplanetamapa.jpg")}
-              style={{ width: "70%", maxHeight: 200, resizeMode: "contain" }}
-            />
-            <View style={{ alignItems: "center", justifyContent: "center" }}>
-              <Text
-                style={[
-                  styles.textBlackMedium,
-                  { textAlign: "justify", marginBottom: 30 },
-                ]}
-              >
-                Com o UrbanEye, você tem acesso a informações detalhadas sobre
-                os riscos da sua região. Nossa equipe de desenvolvedores está
-                comprometida em fornecer dados precisos e atualizados para
-                ajudar você a identificar áreas de risco e tomar decisões
-                informadas. Experimente uma abordagem que prioriza sua segurança
-                e bem-estar, mantendo você informado sobre os riscos ao seu
-                redor. Mantenha-se seguro e protegido com o UrbanEye!
-              </Text>
-            </View>
-          </View>
-
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              marginHorizontal: 15,
-            }}
-          >
-            <Text style={[styles.textBlack, { fontWeight: "bold" }]}>
-              Gerenciamento de Reclamações
-            </Text>
-            <Image
-              source={require("../Images/mapearReclamacao.jpg")}
-              style={{ width: "70%", maxHeight: 200, resizeMode: "contain" }}
-            />
-            <View style={styles.containerCenter}>
-              <Text
-                style={[
-                  styles.textBlackMedium,
-                  { textAlign: "justify", marginBottom: 30 },
-                ]}
-              >
-                Aproveite os serviços de gestão de reclamações da UrbanEye para
-                manter nossos mapas atualizados. Nossa equipe garante que todas
-                as preocupações sejam ouvidas e atendidas quando possível,
-                promovendo um ambiente responsivo e de apoio.
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View style={[styles.backgroundverdeEscuro]}>
-          <ImageBackground
-            source={require("../Images/meioAmbiente.jpg")}
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              height: 200,
-              opacity: 0.7,
-            }}
-            resizeMode="cover"
-          >
-            <View
-              style={{
-                alignItems: "center",
-                justifyContent: "right",
-                marginRight: "55%",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 18,
-                  color: "white",
-                  fontWeight: "bold",
-                  textAlign: "center",
-                }}
-              >
-                Mantenha-se sempre informado sobre nosso blog.
-              </Text>
-              <View style={styles.rowContainer}>
-                <TouchableOpacity style={styles.buttonTransparent}>
-                  <Text style={styles.textWhite}>Blog</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </ImageBackground>
         </View>
       </ScrollView>
     </SafeAreaView>

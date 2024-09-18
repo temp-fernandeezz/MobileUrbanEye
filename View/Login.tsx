@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../Model/api'; // Certifique-se de que este arquivo contém a configuração da API.
+import api from '../lib/api'; // Certifique-se de que este arquivo contém a configuração da API.
 import styles from '../Styles/styles';
 
 const Login = () => {
