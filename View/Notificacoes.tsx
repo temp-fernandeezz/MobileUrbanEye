@@ -1,77 +1,114 @@
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useNotifications } from '../components/NotificationContext';
-import axios from 'axios';
-import { api } from '../lib/api';
+import React, { useEffect, useState } from "react";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { useNotifications } from "../components/NotificationContext";
+import { api } from "../lib/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Notificacoes = () => {
   const navigation = useNavigation();
   const { updateNotifications } = useNotifications();
   const [notificationList, setNotificationList] = useState([]);
+  const [respondedNotifications, setRespondedNotifications] = useState({});
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await axios.get('/notifications');
+        const token = await AsyncStorage.getItem("token");
+        const response = await api.get("/user-notifications", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setNotificationList(response.data);
         updateNotifications(response.data);
+
+        // Carregar respostas salvas
+        const savedResponses = await AsyncStorage.getItem("respondedNotifications");
+        if (savedResponses) {
+          setRespondedNotifications(JSON.parse(savedResponses));
+        }
       } catch (error) {
         console.error("Erro ao buscar notificações:", error);
       }
     };
 
     fetchNotifications();
-
-    return () => {
-      updateNotifications([]);
-    };
-  }, [updateNotifications]);
+  }, []);
 
   const handleConfirm = async (notification) => {
     try {
-      await api.post(`/notifications/confirm/${notification.report_id}`);
-      // Atualizar a lista de notificações localmente
-      setNotificationList(notificationList.filter(n => n.id !== notification.id));
+      if (notification.id) {
+        const token = await AsyncStorage.getItem("token");
+        await api.post(`/notifications/confirm/${notification.id}`, {}, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const newResponses = {
+          ...respondedNotifications,
+          [notification.id]: "confirmado",
+        };
+        setRespondedNotifications(newResponses);
+        await AsyncStorage.setItem("respondedNotifications", JSON.stringify(newResponses)); // Salvar resposta
+      } else {
+        console.error("ID da notificação não encontrado.");
+      }
     } catch (error) {
       console.error("Erro ao confirmar notificação:", error);
     }
   };
 
-  const handleDelete = async (notification) => {
-    try {
-      await axios.post(`http://YOUR_BACKEND_URL/notifications/delete/${notification.report_id}`);
-      // Atualizar a lista de notificações localmente
-      setNotificationList(notificationList.filter(n => n.id !== notification.id));
-    } catch (error) {
-      console.error("Erro ao excluir notificação:", error);
-    }
+  const handleReject = (notification) => {
+    const newResponses = {
+      ...respondedNotifications,
+      [notification.id]: "rejeitado",
+    };
+    setRespondedNotifications(newResponses);
+    AsyncStorage.setItem("respondedNotifications", JSON.stringify(newResponses)); // Salvar resposta
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.notificationContainer}>
         {notificationList.length === 0 ? (
-          <Text style={styles.textBlackRegular}>Nenhuma notificação encontrada.</Text>
+          <Text style={styles.textBlackRegular}>
+            Nenhuma notificação encontrada.
+          </Text>
         ) : (
           notificationList.map((notification) => (
-            <View key={notification.id} style={styles.notificationBox}>
-              <Text style={styles.textBlackRegular}>{notification.title}</Text>
-              <Text style={styles.textBlackMedium}>{notification.message}</Text>
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonConfirm]}
-                  onPress={() => handleConfirm(notification)}
-                >
-                  <Text style={styles.textWhite}>Confirmar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonDelete]}
-                  onPress={() => handleDelete(notification)}
-                >
-                  <Text style={styles.textWhite}>Excluir</Text>
-                </TouchableOpacity>
-              </View>
+            <View key={notification.id} style={[styles.notificationBox, respondedNotifications[notification.id] && styles.responded]}>
+              <Text style={styles.textBlackRegular}>
+                Recebemos uma reclamação de assalto na sua região, poderia confirmar?
+              </Text>
+              {respondedNotifications[notification.id] ? (
+                <Text style={styles.textBlackRegular}>
+                  {respondedNotifications[notification.id] === "confirmado"
+                    ? "Obrigada por auxiliar a UrbanEye"
+                    : "A UrbanEye agradece o retorno"}
+                </Text>
+              ) : (
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonConfirm]}
+                    onPress={() => handleConfirm(notification)}
+                  >
+                    <Text style={styles.textWhite}>Confirmar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonDelete]}
+                    onPress={() => handleReject(notification)}
+                  >
+                    <Text style={styles.textWhite}>Prefiro não participar</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           ))
         )}
@@ -85,70 +122,52 @@ const Notificacoes = () => {
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    margin: 10,
-    justifyContent: 'space-between',
-    backgroundColor: '#DCDCDC',
-    padding: 20,
+    padding: 16,
   },
   notificationContainer: {
     flex: 1,
-    maxWidth: '70%',
   },
   notificationBox: {
-    backgroundColor: 'white',
-    padding: 15,
-    marginBottom: 10,
-    borderRadius: 5,
+    padding: 16,
+    marginVertical: 8,
     borderWidth: 1,
-    borderColor: '#006f4c',
+    borderColor: '#ccc',
+    borderRadius: 8,
+  },
+  responded: {
+    marginTop: 20,
+    opacity: 0.5, // Aplica opacidade para notificações respondidas
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 8,
   },
   button: {
     padding: 10,
     borderRadius: 5,
-    marginTop: 10,
-    marginHorizontal: 5,
   },
   buttonConfirm: {
-    backgroundColor: '#006f4c',
+    backgroundColor: 'green',
   },
   buttonDelete: {
-    backgroundColor: '#ff0000',
-  },
-  buttonVerde: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 120,
-    height: 40,
-    marginTop: 20,
-    marginHorizontal: 20,
-    paddingHorizontal: 10,
-    textAlign: 'center',
-    alignSelf: 'center',
-    borderRadius: 5,
-    backgroundColor: '#006f4c',
+    backgroundColor: 'red',
   },
   textBlackRegular: {
-    fontSize: 16,
-    color: 'black',
-    marginRight: 10,
-    width: '100%',
-  },
-  textBlackMedium: {
-    fontSize: 14,
+    marginTop: 20,
     color: 'black',
   },
   textWhite: {
-    fontSize: 16,
     color: 'white',
+  },
+  buttonVerde: {
+    backgroundColor: 'green',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
   },
 });
 

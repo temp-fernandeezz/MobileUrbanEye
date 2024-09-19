@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -7,39 +7,48 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../lib/api'; // Certifique-se de que este arquivo contém a configuração da API.
-import styles from '../Styles/styles';
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { api } from "../lib/api"; // Certifique-se de que este arquivo contém a configuração da API.
+import styles from "../Styles/styles";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigation = useNavigation();
 
   const handleLogin = async () => {
     try {
-      const response = await api.post('/login', { email, password });
-      const { token } = response.data;
+      const response = await api.post("/login", { email, password });
+      console.log("Login response:", response.data); 
+      const { token, user } = response.data;
 
-      // Armazenar o token no AsyncStorage
-      await AsyncStorage.setItem('authToken', token);
-
-      // Navegar para a próxima tela (ajuste conforme necessário)
-      navigation.navigate('Perfil');
+      if (user && token) {
+        await AsyncStorage.setItem('token', token);
+        navigation.navigate("TelaInicial");
+      } else {
+        Alert.alert("Erro", "Usuário não encontrado.");
+      }
     } catch (error) {
-      Alert.alert('Erro', 'Email ou senha incorretos. Tente novamente.');
-      console.error('Erro ao fazer login:', error);
+      console.error(
+        "Erro ao fazer login:",
+        error.response?.data || error.message
+      );
+      const errorMessage =
+        error.response?.data?.message ||
+        "Email ou senha incorretos. Tente novamente.";
+      Alert.alert("Erro", errorMessage);
     }
   };
 
   return (
     <SafeAreaView
-      style={[styles.containerCenter, styles.backgroundverdeEscuro]}>
+      style={[styles.containerCenter, styles.backgroundverdeEscuro]}
+    >
       <Image
-        source={require('../Images/logo.jpg')}
-        style={{ width: '60%', maxHeight: 200, resizeMode: 'contain' }}
+        source={require("../Images/logo.jpg")}
+        style={{ width: "60%", maxHeight: 200, resizeMode: "contain" }}
       />
       <View style={styles.windowsLogin}>
         <Text style={styles.textBlackRegular}>Login</Text>
@@ -59,7 +68,7 @@ const Login = () => {
         />
 
         <TouchableOpacity>
-          <Text style={{ fontSize: 12, fontWeight: 'bold' }}>
+          <Text style={{ fontSize: 12, fontWeight: "bold" }}>
             Esqueci minha senha
           </Text>
         </TouchableOpacity>
@@ -74,7 +83,7 @@ const Login = () => {
         </View>
 
         <TouchableOpacity>
-          <Text style={[styles.textVerdeClaro, { fontWeight: 'bold' }]}>
+          <Text style={[styles.textVerdeClaro, { fontWeight: "bold" }]}>
             Ainda não possui cadastro?
           </Text>
         </TouchableOpacity>

@@ -12,7 +12,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { api } from '../lib/api'; 
 import styles from '../Styles/styles';
 
-const Perfil = () => {
+const Perfil = ({ route }) => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [confirmEmail, setConfirmEmail] = useState('');
@@ -23,11 +23,10 @@ const Perfil = () => {
   const [rua, setRua] = useState('');
   const [estado, setEstado] = useState('');
   const navigation = useNavigation();
-  const route = useRoute();
-  
-  // Verifica se o parâmetro userId está presente em route.params
-  const { userId } = route.params || {}; 
 
+  // Obtém userId de route.params
+  const userId = route.params?.userId; 
+  
   useEffect(() => {
     if (!userId) {
       Alert.alert('Erro', 'Usuário não encontrado.');
