@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import {
   SafeAreaView,
-  ImageBackground,
   View,
   Text,
   TouchableOpacity,
@@ -12,9 +11,9 @@ import {
 } from "react-native";
 import { api } from "../lib/api";
 import styles from "../Styles/styles";
-import CarrosselInfoSobre from "./ScrollViewSobre";
 import MapView, { Marker } from "react-native-maps";
 import { useNavigation } from "@react-navigation/native";
+import * as Location from "expo-location";
 
 const { height } = Dimensions.get("window");
 
@@ -31,6 +30,27 @@ const TelaInicial = () => {
   const [markers, setMarkers] = useState([]);
   const [filteredMarkers, setFilteredMarkers] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState(null);
+
+  // Solicita permissão de localização e pega a localização atual
+  useEffect(() => {
+    const getLocationPermission = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permissão de Localização", "Permissão de localização negada.");
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setMapRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
+    };
+
+    getLocationPermission();
+  }, []);
 
   useEffect(() => {
     const fetchApprovedLocations = async () => {
@@ -192,10 +212,6 @@ const TelaInicial = () => {
               );
             })}
           </MapView>
-        </View>
-
-        <View style={styles.backgroundverdeEscuro}>
-          <CarrosselInfoSobre />
         </View>
       </ScrollView>
     </SafeAreaView>

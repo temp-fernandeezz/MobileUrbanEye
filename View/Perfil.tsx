@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import api from '../Model/api'; 
+import { api } from '../lib/api'; 
 import styles from '../Styles/styles';
 
 const Perfil = () => {

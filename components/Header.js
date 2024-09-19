@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, StatusBar, Alert, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, StatusBar, Text, TouchableOpacity, Image } from 'react-native';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -33,14 +33,18 @@ const Header = ({ showX = true, showArrow = true }) => {
           </BorderlessButton>
         )}
 
+        {showX && (
+          <BorderlessButton onPress={handleGoToAppHomepage}>
+            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 20 }}>UrbanEye</Text>
+          </BorderlessButton>
+        )}
+
         {/* Exibe o ícone de notificação se houver notificações */}
         {hasNotifications && (
           <TouchableOpacity onPress={irParaNotificacoes}>
             <Feather name="bell" size={24} color="#007a53" />
           </TouchableOpacity>
         )}
-
-
       </View>
     </>
   );

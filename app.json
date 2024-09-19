@@ -22,7 +22,7 @@
     },
     "android": {
       "package": "com.urbaneye",
-      "permissions": ["ACCESS_FINE_LOCATION"],
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyBn0Hr_x0v-_EhdIbcEbF_H_AKEuqbMcLc"
