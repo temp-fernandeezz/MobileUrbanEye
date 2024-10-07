@@ -5,11 +5,14 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useNotifications } from "../components/NotificationContext";
 import { api } from "../lib/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const { height } = Dimensions.get("window");
 
 const Notificacoes = () => {
   const navigation = useNavigation();
@@ -56,7 +59,7 @@ const Notificacoes = () => {
           [notification.id]: "confirmado",
         };
         setRespondedNotifications(newResponses);
-        await AsyncStorage.setItem("respondedNotifications", JSON.stringify(newResponses)); // Salvar resposta
+        await AsyncStorage.setItem("respondedNotifications", JSON.stringify(newResponses));
       } else {
         console.error("ID da notificação não encontrado.");
       }
@@ -71,7 +74,7 @@ const Notificacoes = () => {
       [notification.id]: "rejeitado",
     };
     setRespondedNotifications(newResponses);
-    AsyncStorage.setItem("respondedNotifications", JSON.stringify(newResponses)); // Salvar resposta
+    AsyncStorage.setItem("respondedNotifications", JSON.stringify(newResponses));
   };
 
   return (
@@ -86,6 +89,12 @@ const Notificacoes = () => {
             <View key={notification.id} style={[styles.notificationBox, respondedNotifications[notification.id] && styles.responded]}>
               <Text style={styles.textBlackRegular}>
                 Recebemos uma reclamação de assalto na sua região, poderia confirmar?
+              </Text>
+              <Text style={styles.textBlackRegular}>
+                Local: {notification.address}, {notification.city} - {notification.postal_code}
+              </Text>
+              <Text style={styles.textBlackRegular}>
+                Data: {new Date(notification.created_at).toLocaleString()}
               </Text>
               {respondedNotifications[notification.id] ? (
                 <Text style={styles.textBlackRegular}>
@@ -122,6 +131,7 @@ const Notificacoes = () => {
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

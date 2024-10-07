@@ -4,6 +4,7 @@ import TelaInicial from '../View/TelaInicial'; // Corrija o caminho, se necessá
 import Header from '../components/Header'; // Corrija o caminho, se necessário
 import Login from '../View/Login';
 import Cadastro from '../View/Cadastro';
+import Notificacoes from '../View/Notificacoes';
 
 const Drawer = createDrawerNavigator();
 
@@ -17,8 +18,6 @@ const DrawerNavigator = () => {
       <Drawer.Screen name="TelaInicial" component={TelaInicial} />
       <Drawer.Screen name="Login" component={Login} />
       <Drawer.Screen name="Cadastro" component={Cadastro}/>
-      
-
     </Drawer.Navigator>
   );
 };

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-const Header = ({ title }) => {
+const Header = ({ title, hasNotifications }) => { // Adicione a prop hasNotifications
   const navigation = useNavigation();
 
   return (
@@ -16,15 +16,18 @@ const Header = ({ title }) => {
         style={styles.icon}
       />
       <Text style={styles.title}>{title}</Text>
-      <Ionicons
-        name="notifications-outline"  // ou "notifications" para um ícone preenchido
-        size={24}
-        color="black"
-        onPress={() => {
-          // Adicione a ação para o ícone de notificações
-        }}
-        style={styles.icon}
-      />
+      <View style={styles.notificationContainer}>
+        <Ionicons
+          name="notifications-outline" // ou "notifications" para um ícone preenchido
+          size={24}
+          color="white"
+          onPress={() => {
+            // Adicione a ação para o ícone de notificações
+          }}
+          style={styles.icon}
+        />
+        {hasNotifications && <View style={styles.notificationDot} />} {/* Bolinha se houver notificações */}
+      </View>
     </View>
   );
 };
@@ -32,12 +35,12 @@ const Header = ({ title }) => {
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
-    alignItems: 'center',  // Alinha itens verticalmente no centro
-    justifyContent: 'space-between',  // Distribui o espaço entre os itens
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 10,
     backgroundColor: 'black',
-    elevation: 3, 
-    shadowOffset: { width: 0, height: 2 }, 
+    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
@@ -48,6 +51,18 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  notificationContainer: {
+    position: 'relative', // Para o posicionamento da bolinha
+  },
+  notificationDot: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: 8,
+    height: 8,
+    borderRadius: 4, // Para fazer a bolinha
+    backgroundColor: 'red', // Cor da bolinha
   },
 });
 
