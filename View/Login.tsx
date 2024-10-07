@@ -26,10 +26,10 @@ const Login = () => {
       const response = await api.post("/login", { email, password });
       console.log("Login response:", response.data);
       const { token, user } = response.data;
-
+  
       if (user && token) {
         await AsyncStorage.setItem("token", token);
-        login();
+        login(user); // aqui você pode passar o userData se desejar
         navigation.navigate("TelaInicial");
       } else {
         Alert.alert("Erro", "Usuário não encontrado.");
@@ -45,6 +45,7 @@ const Login = () => {
       Alert.alert("Erro", errorMessage);
     }
   };
+  
 
   return (
     <SafeAreaView
