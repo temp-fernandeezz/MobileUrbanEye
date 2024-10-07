@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   SafeAreaView,
   View,
@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { api } from "../lib/api"; // Certifique-se de que este arquivo contém a configuração da API.
+import { api } from "../lib/api";
+import { AuthContext } from "../lib/AuthContext";
 import styles from "../Styles/styles";
 
 const Login = () => {
@@ -18,14 +19,17 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const navigation = useNavigation();
 
+  const { login } = useContext(AuthContext);
+
   const handleLogin = async () => {
     try {
       const response = await api.post("/login", { email, password });
-      console.log("Login response:", response.data); 
+      console.log("Login response:", response.data);
       const { token, user } = response.data;
 
       if (user && token) {
-        await AsyncStorage.setItem('token', token);
+        await AsyncStorage.setItem("token", token);
+        login();
         navigation.navigate("TelaInicial");
       } else {
         Alert.alert("Erro", "Usuário não encontrado.");

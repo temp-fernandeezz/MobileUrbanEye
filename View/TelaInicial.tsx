@@ -38,6 +38,7 @@ const TelaInicial = () => {
   useEffect(() => {
     const getLocationPermission = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
+      console.log("Status da permissão:", status);
       if (status !== "granted") {
         Alert.alert(
           "Permissão de Localização",
@@ -47,6 +48,7 @@ const TelaInicial = () => {
       }
 
       let location = await Location.getCurrentPositionAsync({});
+      // console.log("Localização atual:", location);
       const currentRegion = {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
@@ -62,8 +64,8 @@ const TelaInicial = () => {
 
   useEffect(() => {
     const fetchApprovedLocations = async () => {
+      setLoading(true);
       try {
-        // setLoading(true);
         const response = await api.get("/reports/approved-locations");
         setMarkers(response.data);
         setFilteredMarkers(response.data);
@@ -89,14 +91,12 @@ const TelaInicial = () => {
   };
 
   const buscarEnderecoPorCep = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await api.get("/location/search", {
         params: { postal_code: postal_code },
       });
       const data = response.data;
-
-      console.log("Dados do CEP:", data);
 
       if (data.error || !data.latitude || !data.longitude) {
         Alert.alert(
@@ -116,7 +116,7 @@ const TelaInicial = () => {
     } catch (error) {
       Alert.alert(
         "Erro",
-        "Opa, parece que a forma de pesquisa de CEP esta incorreta. Por favor, pesquise sem caracteres especiais."
+        "Opa, parece que a forma de pesquisa de CEP está incorreta. Por favor, pesquise sem caracteres especiais."
       );
       console.error("Erro ao buscar CEP:", error);
     } finally {
