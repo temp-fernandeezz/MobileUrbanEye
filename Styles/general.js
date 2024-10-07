@@ -241,8 +241,15 @@ const general = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-
+  clearSearchButton: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    marginTop: 12,
+    borderRadius: 5,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 };
 
 export default general;

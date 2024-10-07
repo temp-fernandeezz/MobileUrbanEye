@@ -8,6 +8,7 @@ import {
   Dimensions,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { api } from "../lib/api";
 import styles from "../Styles/styles";
@@ -26,27 +27,34 @@ const TelaInicial = () => {
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
+  const [initialRegion, setInitialRegion] = useState(mapRegion);
   const [postal_code, setCep] = useState("");
   const [markers, setMarkers] = useState([]);
   const [filteredMarkers, setFilteredMarkers] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [searchPerformed, setSearchPerformed] = useState(false);
 
-  // Solicita permissão de localização e pega a localização atual
   useEffect(() => {
     const getLocationPermission = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permissão de Localização", "Permissão de localização negada.");
+        Alert.alert(
+          "Permissão de Localização",
+          "Permissão de localização negada."
+        );
         return;
       }
 
       let location = await Location.getCurrentPositionAsync({});
-      setMapRegion({
+      const currentRegion = {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
-      });
+      };
+      setMapRegion(currentRegion);
+      setInitialRegion(currentRegion);
     };
 
     getLocationPermission();
@@ -55,12 +63,15 @@ const TelaInicial = () => {
   useEffect(() => {
     const fetchApprovedLocations = async () => {
       try {
+        // setLoading(true);
         const response = await api.get("/reports/approved-locations");
         setMarkers(response.data);
         setFilteredMarkers(response.data);
       } catch (error) {
         Alert.alert("Erro", "Não foi possível buscar os locais.");
         console.error("Erro ao buscar locais aprovados:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -79,6 +90,7 @@ const TelaInicial = () => {
 
   const buscarEnderecoPorCep = async () => {
     try {
+      setLoading(true);
       const response = await api.get("/location/search", {
         params: { postal_code: postal_code },
       });
@@ -100,10 +112,23 @@ const TelaInicial = () => {
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       });
+      setSearchPerformed(true);
     } catch (error) {
-      Alert.alert("Erro", "Ocorreu um erro ao buscar o CEP.");
+      Alert.alert(
+        "Erro",
+        "Opa, parece que a forma de pesquisa de CEP esta incorreta. Por favor, pesquise sem caracteres especiais."
+      );
       console.error("Erro ao buscar CEP:", error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const resetMap = () => {
+    setMapRegion(initialRegion);
+    setFilteredMarkers(markers);
+    setCep("");
+    setSearchPerformed(false);
   };
 
   return (
@@ -144,7 +169,7 @@ const TelaInicial = () => {
           </View>
           <TouchableOpacity
             style={styles.clearFilterButton}
-            onPress={() => applyFilter(null)} // Limpa o filtro
+            onPress={() => applyFilter(null)}
           >
             <Text style={styles.textWhite}>Limpar Filtros</Text>
           </TouchableOpacity>
@@ -169,6 +194,17 @@ const TelaInicial = () => {
               <Text style={styles.textWhite}>Buscar CEP</Text>
             </TouchableOpacity>
           </View>
+
+          {loading && <ActivityIndicator size="large" color="#0000ff" />}
+
+          {searchPerformed && (
+            <TouchableOpacity
+              style={styles.clearSearchButton}
+              onPress={resetMap}
+            >
+              <Text style={styles.textWhite}>Limpar Pesquisa</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.mapContainer}>

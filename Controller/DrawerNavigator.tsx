@@ -1,7 +1,7 @@
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import TelaInicial from '../View/TelaInicial'; // Corrija o caminho, se necessário
-import Header from '../components/Header'; // Corrija o caminho, se necessário
+import TelaInicial from '../View/TelaInicial';
+import Header from '../components/Header';
 import Login from '../View/Login';
 import Cadastro from '../View/Cadastro';
 import Notificacoes from '../View/Notificacoes';
