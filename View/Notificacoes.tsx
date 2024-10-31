@@ -32,8 +32,9 @@ const Notificacoes = () => {
         setNotificationList(response.data);
         updateNotifications(response.data);
 
-        // Carregar respostas salvas
-        const savedResponses = await AsyncStorage.getItem("respondedNotifications");
+        const savedResponses = await AsyncStorage.getItem(
+          "respondedNotifications"
+        );
         if (savedResponses) {
           setRespondedNotifications(JSON.parse(savedResponses));
         }
@@ -60,6 +61,11 @@ const Notificacoes = () => {
         };
         setRespondedNotifications(newResponses);
         await AsyncStorage.setItem("respondedNotifications", JSON.stringify(newResponses));
+        
+        // Atualizar a contagem de notificações
+        const unreadCount = notificationList.filter(notif => !newResponses[notif.id]).length;
+        setUnreadNotifications(unreadCount);
+        
       } else {
         console.error("ID da notificação não encontrado.");
       }
@@ -67,7 +73,7 @@ const Notificacoes = () => {
       console.error("Erro ao confirmar notificação:", error);
     }
   };
-
+  
   const handleReject = (notification) => {
     const newResponses = {
       ...respondedNotifications,
@@ -75,7 +81,12 @@ const Notificacoes = () => {
     };
     setRespondedNotifications(newResponses);
     AsyncStorage.setItem("respondedNotifications", JSON.stringify(newResponses));
+  
+    // Atualizar a contagem de notificações
+    const unreadCount = notificationList.filter(notif => !newResponses[notif.id]).length;
+    setUnreadNotifications(unreadCount);
   };
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -86,12 +97,20 @@ const Notificacoes = () => {
           </Text>
         ) : (
           notificationList.map((notification) => (
-            <View key={notification.id} style={[styles.notificationBox, respondedNotifications[notification.id] && styles.responded]}>
+            <View
+              key={notification.id}
+              style={[
+                styles.notificationBox,
+                respondedNotifications[notification.id] && styles.responded,
+              ]}
+            >
               <Text style={styles.textBlackRegular}>
-                Recebemos uma reclamação de assalto na sua região, poderia confirmar?
+                Recebemos uma reclamação de assalto na sua região, poderia
+                confirmar?
               </Text>
               <Text style={styles.textBlackRegular}>
-                Local: {notification.address}, {notification.city} - {notification.postal_code}
+                Local: {notification.address}, {notification.city} -{" "}
+                {notification.postal_code}
               </Text>
               <Text style={styles.textBlackRegular}>
                 Data: {new Date(notification.created_at).toLocaleString()}
@@ -144,16 +163,16 @@ const styles = StyleSheet.create({
     padding: 16,
     marginVertical: 8,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
   },
   responded: {
     marginTop: 20,
-    opacity: 0.5, // Aplica opacidade para notificações respondidas
+    opacity: 0.7,
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 8,
   },
   button: {
@@ -161,23 +180,23 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   buttonConfirm: {
-    backgroundColor: 'green',
+    backgroundColor: "green",
   },
   buttonDelete: {
-    backgroundColor: 'red',
+    backgroundColor: "red",
   },
   textBlackRegular: {
     marginTop: 20,
-    color: 'black',
+    color: "black",
   },
   textWhite: {
-    color: 'white',
+    color: "white",
   },
   buttonVerde: {
-    backgroundColor: 'green',
+    backgroundColor: "green",
     padding: 10,
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
 });
 

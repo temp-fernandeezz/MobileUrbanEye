@@ -48,7 +48,7 @@ const TelaInicial = () => {
       }
 
       let location = await Location.getCurrentPositionAsync({});
-      // console.log("Localização atual:", location);
+      console.log("Localização atual:", location);
       const currentRegion = {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
@@ -219,7 +219,7 @@ const TelaInicial = () => {
 
               switch (marker.type) {
                 case "illegal_dump":
-                  pinColor = "brown";
+                  pinColor = "#28a745";
                   title = "Descarte irregular";
                   break;
                 case "robberies":

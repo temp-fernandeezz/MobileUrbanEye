@@ -166,6 +166,18 @@ const general = {
     marginVertical: 8,
     flex: 1,
   },
+  picker: {
+    backgroundColor: colors.white,
+    color: colors.black,
+    fontSize: fonts.regular,
+    height: 40,
+    paddingHorizontal: 10,
+    borderWidth: 3,
+    borderColor: colors.verdeEscuro,
+    borderRadius: 10,
+    marginVertical: 8,
+    flex: 1,
+  },
   textInputDescricaoNovaReclamacao: {
     backgroundColor: colors.white,
     color: colors.black,
@@ -200,13 +212,12 @@ const general = {
   backgroundClaro: {
     backgroundColor: colors.claro,
   },
-  // Estilo adicional para os filtros
   filterContainer: {
-    padding: 15,
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
+    marginVertical: 20,
     marginHorizontal: 20,
-    padding: 10,
+    padding: 0,
     borderRadius: 5,
   },
   filterTitle: {
@@ -223,7 +234,7 @@ const general = {
   filterButton: {
     flex: 1,
     marginHorizontal: 5,
-    backgroundColor: '#6c757d',
+    backgroundColor: '#007a53',
     padding: 10,
     borderRadius: 5,
     borderRadius: 8,
@@ -249,6 +260,32 @@ const general = {
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  reclamacaoContainer: {
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 10,
+    backgroundColor: 'white',
+  },
+  textBlackLogado: {
+    ...baseStyles.text,
+    fontSize: fonts.regular,
+    color: colors.black,
+    marginRight: 10,
+    width: 'auto',
+    flexWrap: 'wrap',
+  },
+  titleLogado: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  dataLogado: {
+    fontSize: 14,
+    color: 'gray',
+    marginBottom: 15,
   },
 };
 

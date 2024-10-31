@@ -32,7 +32,7 @@ const App = () => {
             />
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Cadastro" component={Cadastro} />
-            <Stack.Screen name="TelaInicial" component={TelaInicial} />
+            <Stack.Screen name="Tela Inicial" component={TelaInicial} />
             <Stack.Screen name="Notificacoes" component={Notificacoes} />
             <Stack.Screen name="Logado" component={Logado} />
             <Stack.Screen name="Perfil" component={Perfil} />

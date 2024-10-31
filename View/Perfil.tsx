@@ -8,25 +8,33 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { api } from '../lib/api'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../Styles/styles';
 
-const Perfil = ({ route }) => {
+const Perfil = () => {
   const [userInfo, setUserInfo] = useState(null);
   const navigation = useNavigation();
 
-  const userId = route.params?.userId; 
-  
   useEffect(() => {
-    if (!userId) {
-      Alert.alert('Erro', 'Usuário não encontrado.');
-      return;
-    }
-
     const fetchUserDetails = async () => {
       try {
-        const response = await api.get(`/user/${userId}`);
+        // Obtenha o token do AsyncStorage
+        const token = await AsyncStorage.getItem("token");
+        
+        if (!token) {
+          Alert.alert('Erro', 'Usuário não autenticado.');
+          return;
+        }
+
+        // Faça a requisição para obter as informações do usuário autenticado
+        const response = await api.get('/user', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
         const userData = response.data;
         setUserInfo(userData);
       } catch (error) {
@@ -36,11 +44,10 @@ const Perfil = ({ route }) => {
     };
 
     fetchUserDetails();
-  }, [userId]);
+  }, []);
 
   const handleSave = async () => {
     // Implementação da lógica de salvar se necessário
-    // Você pode querer atualizar a lógica de salvar aqui se precisar modificar as informações do perfil.
   };
 
   if (!userInfo) {
