@@ -20,26 +20,52 @@ const VizualizarReclamacao = ({ navigation }) => {
     const fetchUserReports = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
+
         const response = await api.get("/reports", {
           headers: {
-            Authorization: `Bearer ${token}`, // Adicionando o token ao cabeçalho
+            Authorization: `Bearer ${token}`, 
+            "Content-Type": "application/json",
           },
         });
-        
-        // Armazena os relatórios em um estado ou realiza outra operação necessária
-        console.log("Relatórios do usuário:", response.data);
+
+        setReports(response.data);
+        setLoading(false);
       } catch (error) {
         console.error("Erro ao buscar relatórios:", error);
+        setError("Erro ao carregar as reclamações.");
+        setLoading(false);
       }
     };
-    
-    // Chame a função para buscar os relatórios
-    fetchUserReports();
-    
 
+    fetchUserReports();
   }, []);
 
-  // Renderização condicional
+  const traduzirStatus = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'Pendente';
+      case 'approved':
+        return 'Aprovado';
+      case 'recused':
+        return 'Recusado';
+      default:
+        return status;
+    }
+  };
+
+  const traduzirType = (type) => {
+    switch (type) {
+      case 'flood':
+        return 'Alagamento';
+      case 'illegal_dump':
+        return 'Descarte Irregular';
+      case 'robberies':
+        return 'Assalto';
+      default:
+        return status;
+    }
+  };
+
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
@@ -47,17 +73,21 @@ const VizualizarReclamacao = ({ navigation }) => {
   if (error) {
     return <Text>{error}</Text>;
   }
-
   return (
     <FlatList
       data={reports}
       keyExtractor={(item) => item.id.toString()} // Ajuste se o seu ID não for numérico
       renderItem={({ item }) => (
-        <View>
-          <Text>{item.description}</Text> {/* Ajuste conforme os dados que você deseja exibir */}
+        <View style={styles.reportContainer}>
+          <Text style={styles.reportText}>Data: {new Date(item.created_at).toLocaleDateString()}</Text>
+          <Text style={styles.reportText}>Status: {traduzirStatus(item.status)}</Text>
+          <Text style={styles.reportText}>Tipo: {traduzirType(item.type)}</Text>
+          <Text style={styles.reportText}>Endereço: {item.address}</Text>
+          <Text style={styles.reportText}>CEP: {item.postal_code}</Text>
         </View>
       )}
     />
   );
 };
+
 export default VizualizarReclamacao;

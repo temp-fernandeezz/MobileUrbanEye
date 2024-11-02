@@ -11,7 +11,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "../lib/api";
-import { AuthContext } from "../lib/AuthContext";
+import { useAuth } from "../lib/AuthContext";
 import styles from "../Styles/styles";
 
 const Login = () => {
@@ -19,20 +19,17 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const navigation = useNavigation();
 
-  const { login } = useContext(AuthContext);
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     try {
       const response = await api.post("/login", { email, password });
-      console.log("Login response:", response.data);
-
       const { token, user } = response.data;
 
       if (user && token) {
-        await AsyncStorage.setItem("token", token);
-        await AsyncStorage.setItem("userId", String(user.id));
-
-        login(user);
+        await AsyncStorage.setItem("token", token); // Armazena o token
+        await AsyncStorage.setItem("user_id", user.id.toString()); // Armazena o user_id
+        login(token); // Atualiza o estado e armazena o token
         navigation.navigate("TelaInicial");
       } else {
         Alert.alert("Erro", "Usuário não encontrado.");
@@ -46,6 +43,16 @@ const Login = () => {
         error.response?.data?.message ||
         "Email ou senha incorretos. Tente novamente.";
       Alert.alert("Erro", errorMessage);
+    }
+
+    const token = await AsyncStorage.getItem("token");
+    const user_id = await AsyncStorage.getItem("user_id");
+    console.log("Token recuperado:", token); // Log do token
+    console.log("ID recuperado:", user_id); // Log do ID do usuário
+
+    if (!token) {
+      console.error("Erro: Token não encontrado.");
+      return;
     }
   };
 

@@ -11,6 +11,8 @@ import Cadastro from "../View/Cadastro";
 import { useNotifications } from "../components/NotificationContext"; // Para lidar com o ponto verde de notificações
 import NovaReclamacao from "../View/NovaReclamacao";
 import VisualizarReclamacao from "../View/VisualizarReclamacao";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 const Drawer = createDrawerNavigator();
 
@@ -19,18 +21,20 @@ const DrawerNavigator = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null); // Estado atualizado para boolean | null
 
   // Verificar se o usuário está autenticado
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token"); // Busca o token armazenado
-        setIsAuthenticated(!!token); // Atualiza o estado com base na existência do token
-      } catch (error) {
-        console.error("Erro ao verificar token de autenticação:", error);
-      }
-    };
-
-    checkLoginStatus();
-  }, []); // Executa apenas uma vez na montagem do componente
+  useFocusEffect(
+    useCallback(() => {
+      const checkLoginStatus = async () => {
+        try {
+          const token = await AsyncStorage.getItem("token");
+          setIsAuthenticated(!!token);
+        } catch (error) {
+          console.error("Erro ao verificar token de autenticação:", error);
+        }
+      };
+  
+      checkLoginStatus();
+    }, [])
+  );
 
   // Função de logout
   const handleLogout = async () => {
@@ -109,7 +113,21 @@ const DrawerNavigator = () => {
       {!isAuthenticated && (
         <>
           <Drawer.Screen name="Login" component={Login} />
+          <Drawer.Screen name="Notificacoes" component={Notificacoes} options={{ drawerLabel: "Notificações" }}/>
+          <Drawer.Screen name="VisualizarReclamacao" component={VisualizarReclamacao} options={{ drawerLabel: "Visualizar Reclamações" }} />
+          <Drawer.Screen name="NovaReclamacao" component={NovaReclamacao} options={{ drawerLabel: "Nova Reclamação" }}/>
           <Drawer.Screen name="Cadastro" component={Cadastro} />
+          <Drawer.Screen
+            name="Logout"
+            options={{ drawerLabel: "Sair" }}
+            component={() => (
+              <TouchableOpacity onPress={handleLogout}>
+                <View style={{ padding: 20 }}>
+                  <Text style={{ fontSize: 18, color: "red" }}>Sair</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
         </>
       )}
     </Drawer.Navigator>

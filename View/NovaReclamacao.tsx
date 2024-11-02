@@ -9,6 +9,8 @@ import {
   Alert,
   Image,
   Platform,
+  Modal,
+  Button,
 } from "react-native";
 import styles from "../Styles/styles";
 import { buscarEnderecoPorCep } from "../lib/SearchAddress";
@@ -26,6 +28,7 @@ const NovaReclamacao = ({ navigation }) => {
   const [estado, setEstado] = useState("");
   const [erro, setErro] = useState("");
   const [image, setImage] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const buscarEndereco = async () => {
@@ -81,17 +84,14 @@ const NovaReclamacao = ({ navigation }) => {
 
   const handleEnviar = async () => {
     try {
-      let formData = new FormData();
-
-      const userId = await AsyncStorage.getItem("userId");
+      const formData = new FormData();
       const token = await AsyncStorage.getItem("token");
 
-      if (!userId) {
-        console.error("Erro: User ID não encontrado.");
+      if (!token) {
+        console.error("Erro: Token de autenticação não encontrado.");
         return;
       }
 
-      formData.append("user_id", userId);
       formData.append("type", selectedComplaintType);
       formData.append("address", address);
       formData.append("city", city);
@@ -101,7 +101,6 @@ const NovaReclamacao = ({ navigation }) => {
       if (image) {
         const uriParts = image.split(".");
         const fileType = uriParts[uriParts.length - 1];
-
         formData.append("image_path", {
           uri: image,
           name: `photo.${fileType}`,
@@ -111,14 +110,17 @@ const NovaReclamacao = ({ navigation }) => {
 
       const response = await api.post("/reports", formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log("Requisição bem-sucedida:", response.data);
+      if (response.status === 200 || response.status === 201) {
+        setModalVisible(true);
+      } else {
+        console.error("Erro ao enviar a reclamação:", response);
+      }
     } catch (error) {
-      console.error("Erro ao enviar:", error);
+      console.error("Erro:", error);
     }
   };
 
@@ -229,11 +231,30 @@ const NovaReclamacao = ({ navigation }) => {
           <Text style={styles.textWhite}>Enviar</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={[styles.textVerdeClaro, { fontWeight: "bold" }]}>
-            Sair
-          </Text>
-        </TouchableOpacity>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>
+                Agradecemos a reclamação, temos o prazo de uma semana para
+                analisar sua reclamação
+              </Text>
+              <Button
+                title="Fechar"
+                onPress={() => {
+                  setModalVisible(false);
+                  navigation.navigate("VizualizarReclamacao");
+                }}
+              />
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
