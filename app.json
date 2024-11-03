@@ -4,7 +4,7 @@
     "slug": "urbaneye",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./Images/logoSimples.jpg",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -22,7 +22,12 @@
     },
     "android": {
       "package": "com.urbaneye",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECEIVE_BOOT_COMPLETED",
+        "com.google.android.c2dm.permission.RECEIVE"
+      ],
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyBn0Hr_x0v-_EhdIbcEbF_H_AKEuqbMcLc"
@@ -42,6 +47,19 @@
         "projectId": "1af835ab-2984-4fb9-9fe7-9ebc5667f2bb"
       }
     },
-    "plugins": ["expo-font"]
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./local/assets/notification-icon.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "sounds": [
+            "./local/assets/notification-sound.wav",
+            "./local/assets/notification-sound-other.wav"
+          ]
+        }
+      ]
+    ]
   }
 }

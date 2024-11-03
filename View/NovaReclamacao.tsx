@@ -249,7 +249,7 @@ const NovaReclamacao = ({ navigation }) => {
                 title="Fechar"
                 onPress={() => {
                   setModalVisible(false);
-                  navigation.navigate("VizualizarReclamacao");
+                  navigation.navigate("TelaInicial");
                 }}
               />
             </View>

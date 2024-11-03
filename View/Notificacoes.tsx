@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useNotifications } from "../components/NotificationContext";
@@ -50,22 +51,30 @@ const Notificacoes = () => {
     try {
       if (notification.id) {
         const token = await AsyncStorage.getItem("token");
-        await api.post(`/notifications/confirm/${notification.id}`, {}, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await api.post(
+          `/notifications/confirm/${notification.id}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         const newResponses = {
           ...respondedNotifications,
           [notification.id]: "confirmado",
         };
         setRespondedNotifications(newResponses);
-        await AsyncStorage.setItem("respondedNotifications", JSON.stringify(newResponses));
-        
+        await AsyncStorage.setItem(
+          "respondedNotifications",
+          JSON.stringify(newResponses)
+        );
+
         // Atualizar a contagem de notificações
-        const unreadCount = notificationList.filter(notif => !newResponses[notif.id]).length;
+        const unreadCount = notificationList.filter(
+          (notif) => !newResponses[notif.id]
+        ).length;
         setUnreadNotifications(unreadCount);
-        
       } else {
         console.error("ID da notificação não encontrado.");
       }
@@ -73,74 +82,91 @@ const Notificacoes = () => {
       console.error("Erro ao confirmar notificação:", error);
     }
   };
-  
+
   const handleReject = (notification) => {
     const newResponses = {
       ...respondedNotifications,
       [notification.id]: "rejeitado",
     };
     setRespondedNotifications(newResponses);
-    AsyncStorage.setItem("respondedNotifications", JSON.stringify(newResponses));
-  
+    AsyncStorage.setItem(
+      "respondedNotifications",
+      JSON.stringify(newResponses)
+    );
+
     // Atualizar a contagem de notificações
-    const unreadCount = notificationList.filter(notif => !newResponses[notif.id]).length;
+    const unreadCount = notificationList.filter(
+      (notif) => !newResponses[notif.id]
+    ).length;
     setUnreadNotifications(unreadCount);
   };
-  
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.notificationContainer}>
-        {notificationList.length === 0 ? (
-          <Text style={styles.textBlackRegular}>
-            Nenhuma notificação encontrada.
-          </Text>
-        ) : (
-          notificationList.map((notification) => (
-            <View
-              key={notification.id}
-              style={[
-                styles.notificationBox,
-                respondedNotifications[notification.id] && styles.responded,
-              ]}
-            >
-              <Text style={styles.textBlackRegular}>
-                Recebemos uma reclamação de assalto na sua região, poderia
-                confirmar?
-              </Text>
-              <Text style={styles.textBlackRegular}>
-                Local: {notification.address}, {notification.city} -{" "}
-                {notification.postal_code}
-              </Text>
-              <Text style={styles.textBlackRegular}>
-                Data: {new Date(notification.created_at).toLocaleString()}
-              </Text>
-              {respondedNotifications[notification.id] ? (
+      <ScrollView>
+        <View style={styles.notificationContainer}>
+          {notificationList.length === 0 ? (
+            <Text style={styles.textBlackRegular}>
+              Nenhuma notificação encontrada.
+            </Text>
+          ) : (
+            notificationList.map((notification) => (
+              <View
+                key={notification.id}
+                style={[
+                  styles.notificationBox,
+                  respondedNotifications[notification.id] && styles.responded,
+                ]}
+              >
                 <Text style={styles.textBlackRegular}>
-                  {respondedNotifications[notification.id] === "confirmado"
-                    ? "Obrigada por auxiliar a UrbanEye"
-                    : "A UrbanEye agradece o retorno"}
+                  Recebemos uma reclamação de assalto na sua região, poderia
+                  confirmar?
                 </Text>
-              ) : (
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={[styles.button, styles.buttonConfirm]}
-                    onPress={() => handleConfirm(notification)}
-                  >
-                    <Text style={styles.textWhite}>Confirmar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.button, styles.buttonDelete]}
-                    onPress={() => handleReject(notification)}
-                  >
-                    <Text style={styles.textWhite}>Prefiro não participar</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          ))
-        )}
-      </View>
+                <Text style={styles.textBlackRegular}>
+                  Local: {notification.address}, {notification.city} -{" "}
+                  {notification.postal_code}
+                </Text>
+                <Text style={styles.textBlackRegular}>
+                  Data: {new Date(notification.created_at).toLocaleString()}
+                </Text>
+                {respondedNotifications[notification.id] ? (
+                  <Text style={styles.textBlackRegular}>
+                    {respondedNotifications[notification.id] === "confirmado"
+                      ? "Obrigada por auxiliar a UrbanEye"
+                      : "A UrbanEye agradece o retorno"}
+                  </Text>
+                ) : (
+                  <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                      style={[styles.button, styles.buttonConfirm]}
+                      onPress={() => handleConfirm(notification)}
+                    >
+                      <Text style={styles.textWhite}>Confirmar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.button, styles.buttonDelete]}
+                      onPress={() => handleReject(notification)}
+                    >
+                      <Text style={styles.textWhite}>
+                       Recusar
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.button, styles.buttonPrefer]}
+                      onPress={() => handleReject(notification)}
+                    >
+                      <Text style={styles.textWhite}>
+                        Prefiro não participar
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            ))
+          )}
+        </View>
+      </ScrollView>
+
       <TouchableOpacity
         style={styles.buttonVerde}
         onPress={() => navigation.goBack()}
@@ -184,6 +210,9 @@ const styles = StyleSheet.create({
   },
   buttonDelete: {
     backgroundColor: "red",
+  },
+  buttonPrefer: {
+    backgroundColor: "orange",
   },
   textBlackRegular: {
     marginTop: 20,
